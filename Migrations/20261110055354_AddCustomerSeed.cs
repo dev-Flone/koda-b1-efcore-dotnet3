@@ -5,7 +5,7 @@
 namespace KodaStore.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSeeder : Migration
+    public partial class AddCustomerSeed : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

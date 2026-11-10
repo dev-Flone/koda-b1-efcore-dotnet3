@@ -43,5 +43,39 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Navigation(c => c.Products).HasField("_products").UsePropertyAccessMode(PropertyAccessMode.Field);
 
         });
+
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.ToTable("Orders", "dbo", table => table.HasCheckConstraint("CK_Orders_Status", "[Status] in ('Pending', 'Confirmed')"));
+            entity.HasKey(o => o.OrderId);
+            entity.Property(o => o.OrderId).ValueGeneratedOnAdd();
+            entity.Property(o => o.OrderNumber).HasMaxLength(35).IsRequired();
+            entity.Property(o => o.OrderDate).HasColumnType("datetimeoffset").IsRequired();
+            entity.Property(o => o.Status).HasMaxLength(20).IsRequired();
+            entity.HasIndex(o => o.OrderDate);
+        });
+
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.ToTable("OrderItem", "dbo", table =>
+            {
+                table.HasCheckConstraint("CK_OrderItem_Quantity", "[Quantity] > 0");
+                table.HasCheckConstraint("CK_OrderItem_UnitPrice", "[UnitPrice] >= 0");
+            });
+            entity.HasKey(i => i.OrderItemId);
+            entity.Property(i => i.OrderItemId).ValueGeneratedOnAdd();
+            entity.Property(i => i.ProductCode).HasMaxLength(30).IsRequired();
+            entity.Property(i => i.Quantity).IsRequired();
+            entity.Property(i => i.UnitPrice).HasPrecision(18, 2);
+            entity.Property(i => i.SubTotal).HasPrecision(18, 2).HasComputedColumnSql("[Quantity] * [UnitPrice]", stored: true);
+
+            entity.HasOne(i => i.Product)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(i => i.ProductCode)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(i => new { i.OrderId, i.ProductCode }).IsUnique();
+            entity.HasIndex(i => i.ProductCode);
+        });
     }
 }

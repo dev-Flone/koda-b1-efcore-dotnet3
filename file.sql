@@ -61,3 +61,39 @@ FROM   Product;
 
 SELECT *
 FROM   Customer;
+
+SELECT *
+FROM   Orders;
+
+SELECT *
+FROM   OrderItem;
+
+DROP TABLE Customer;
+
+DROP TABLE Product;
+
+DROP TABLE Orders;
+
+DROP TABLE OrderItem;
+
+DROP TABLE __EFMigrationsHistory;
+
+-- Hapus seluruh foreign key constraint
+DECLARE @sql AS NVARCHAR (MAX) = N'';
+
+SELECT @sql += N'ALTER TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + N'.' + QUOTENAME(name) + N' DROP CONSTRAINT ' + QUOTENAME(fk.name) + N';'
+FROM   sys.tables AS t
+       INNER JOIN
+       sys.foreign_keys AS fk
+       ON t.object_id = fk.parent_object_id;
+
+EXECUTE sp_executesql @sql;
+
+-- Hapus seluruh tabel
+SET @sql = N'';
+
+SELECT @sql += N'DROP TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + N'.' + QUOTENAME(name) + N';'
+FROM   sys.tables
+WHERE  is_ms_shipped = 0;
+
+EXECUTE sp_executesql @sql;

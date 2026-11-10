@@ -9,6 +9,7 @@ public sealed class Product
     public int Stock { get; private set; }
     public string Category { get; private set; }
     public Customer? Customer { get; private set; }
+    public ICollection<OrderItem> OrderItems { get; private set; } = [];
 
     public Product(int customerId, string productCode, string name, long price, int stock, string category)
     {
